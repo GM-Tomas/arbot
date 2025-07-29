@@ -7,30 +7,29 @@ from binance.client import Client
 from binance.exceptions import BinanceAPIException
 import asyncio
 import aiohttp
-from .trade_logger import TradeLogger
-from .price_websocket_manager import PriceWebSocketManager
 
 logger = logging.getLogger(__name__)
 
 class ArbitrageBot:
     def __init__(self):
-        # Cargar configuración desde JSON
+        # Configuración básica por defecto
+        self.config = {
+            'binance': {
+                'api_key': 'your_api_key',
+                'api_secret': 'your_api_secret'
+            },
+            'settings': {
+                'base_currency': 'USDT'
+            }
+        }
+        
+        # Intentar cargar configuración desde JSON si existe
         try:
-            with open('input/config.json', 'r') as f:
-                self.config = json.load(f)
+            if os.path.exists('input/config.json'):
+                with open('input/config.json', 'r') as f:
+                    self.config = json.load(f)
         except Exception as e:
-            logger.error(f"Error al cargar configuración: {e}")
-            raise
-
-        # Configurar cliente de Binance
-        try:
-            self.client = Client(
-                self.config['binance']['api_key'],
-                self.config['binance']['api_secret']
-            )
-        except Exception as e:
-            logger.error(f"Error al inicializar cliente Binance: {e}")
-            raise
+            logger.warning(f"No se pudo cargar configuración: {e}. Usando configuración por defecto.")
 
         # Configurar parámetros del bot
         self.base_currency = self.config['settings']['base_currency']
@@ -38,45 +37,49 @@ class ArbitrageBot:
         self.triangular_pairs = []
         self.session = None
         
-        # Inicializar logger de trades
-        self.trade_logger = TradeLogger(self.config)
-
-        # Inicializar gestor de precios
-        self.price_manager = PriceWebSocketManager()
-        self.price_manager.add_price_callback(self.on_price_update)
+        # Inicializar cliente de Binance solo si las credenciales están configuradas
+        self.client = None
+        if (self.config['binance']['api_key'] != 'your_api_key' and 
+            self.config['binance']['api_secret'] != 'your_api_secret'):
+            try:
+                self.client = Client(
+                    self.config['binance']['api_key'],
+                    self.config['binance']['api_secret']
+                )
+            except Exception as e:
+                logger.warning(f"No se pudo inicializar cliente Binance: {e}")
 
     def on_price_update(self, symbol: str, price: float):
         """Callback cuando se actualiza un precio"""
         # Aquí puedes agregar lógica adicional cuando se actualiza un precio
-        print(f"Precio actualizado para {symbol}: {price}")
-        pass
+        logger.info(f"Precio actualizado para {symbol}: {price}")
 
     async def initialize(self):
         """Inicializa el bot y obtiene los pares de trading disponibles."""
         try:
             self.session = aiohttp.ClientSession()
-            self.trading_pairs = set(self.get_all_tickers())
-            self.build_triangular_pairs()
-            self.filter_triangular_pairs_by_volume()
             
-            # Actualizar símbolos en el gestor de precios
-            symbols = set()
-            for base_pair, inter_pair, final_pair in self.triangular_pairs:
-                symbols.update([base_pair, inter_pair, final_pair])
-
-            time.sleep(10)
-            self.price_manager.update_symbols(symbols)
-            print(self.price_manager.get_all_prices())
-
-            exit()
-            
-            logger.info(f"Bot inicializado con {len(self.triangular_pairs)} pares triangulares")
+            # Solo obtener tickers si el cliente de Binance está disponible
+            if self.client:
+                self.trading_pairs = set(self.get_all_tickers())
+                self.build_triangular_pairs()
+                self.filter_triangular_pairs_by_volume()
+                logger.info(f"Bot inicializado con {len(self.triangular_pairs)} pares triangulares")
+            else:
+                logger.warning("Cliente de Binance no disponible. Bot inicializado en modo simulación.")
+                self.trading_pairs = set()
+                self.triangular_pairs = []
+                
         except Exception as e:
             logger.error(f"Error en inicialización: {e}")
             raise
 
     def get_all_tickers(self) -> List[str]:
         """Obtiene todos los pares de trading disponibles."""
+        if not self.client:
+            logger.warning("Cliente de Binance no disponible")
+            return []
+            
         try:
             exchange_info = self.client.get_exchange_info()
             return [symbol['symbol'] for symbol in exchange_info['symbols'] 
@@ -93,6 +96,10 @@ class ArbitrageBot:
         Returns:
             List[str]: Lista de los pares con mayor volumen
         """
+        if not self.client:
+            logger.warning("Cliente de Binance no disponible")
+            return []
+            
         try:
             # Obtener tickers de 24h
             tickers = self.client.get_ticker()
@@ -111,8 +118,9 @@ class ArbitrageBot:
                 reverse=True
             )
             
-            # Obtener los top N pares de la configuración
-            top_pairs = [pair['symbol'] for pair in sorted_pairs[:self.config['settings']['top_n_pairs']]]
+            # Obtener los top N pares de la configuración (usar valor por defecto si no existe)
+            top_n = self.config['settings'].get('top_n_pairs', 50)
+            top_pairs = [pair['symbol'] for pair in sorted_pairs[:top_n]]
             
             return top_pairs
             
