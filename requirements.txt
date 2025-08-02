@@ -1,7 +1,7 @@
 # Core dependencies for the simplified dashboard
 websocket-client==1.7.0
 python-binance==1.0.19
-pandas==2.2.0
+pandas>=2.1.4
 dash==2.16.1
 dash-bootstrap-components==1.5.0
 plotly==5.18.0
