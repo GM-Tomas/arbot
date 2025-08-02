@@ -1,18 +1,7 @@
-# Existing dependencies - Updated for Python 3.12 compatibility
+# Core dependencies for the simplified dashboard
 websocket-client==1.7.0
 python-binance==1.0.19
 pandas==2.2.0
-numpy==1.26.4
-aiohttp==3.9.3
-# asyncio is built-in, remove this line
-
-# New dependencies for streaming API and web interface
-fastapi==0.109.2
-uvicorn[standard]==0.27.1
 dash==2.16.1
 dash-bootstrap-components==1.5.0
 plotly==5.18.0
-websockets==12.0
-python-multipart==0.0.9
-pydantic==2.6.1
-jinja2==3.1.3
