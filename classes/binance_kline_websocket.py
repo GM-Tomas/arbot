@@ -173,6 +173,7 @@ class BinanceKlineWebSocket:
             
         except Exception as e:
             logger.error(f"Error ejecutando WebSocket: {e}")
+            print(f"Error ejecutando WebSocket: {e}!!!!!!!!!!!!!!!!!!!!!!!!!")
     
     def start(self):
         """
