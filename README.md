@@ -29,11 +29,24 @@ pip install -r support/requirements.txt
 
 ## Uso
 
+### Bot de Arbitraje
 1. Configura tus credenciales en el archivo `input/config.json`
 2. Ejecuta el bot:
 ```bash
 python Main.py
 ```
+
+### Dashboard Web
+Para ejecutar el dashboard web con navegación entre páginas:
+```bash
+python run_dashboard.py
+```
+
+El dashboard estará disponible en: http://localhost:8050
+
+**Páginas disponibles:**
+- **Dashboard de Precios**: Muestra precios y volumen en tiempo real
+- **Oportunidades de Arbitraje**: Información sobre análisis de arbitraje
 
 ## Estructura del Proyecto
 
@@ -41,19 +54,24 @@ python Main.py
 Arbitbot/
 ├── classes/                 # Clases principales del bot
 │   ├── arbitrage_bot.py    # Clase principal del bot
-│   ├── price_websocket_manager.py  # Gestor de WebSocket para precios
-│   └── trade_logger.py     # Logger de trades
+│   ├── binance_kline_websocket.py  # WebSocket para datos de Binance
+│   └── README_BinanceKlineWebSocket.md
 ├── input/                  # Archivos de entrada
 │   └── config.json        # Configuración del bot
 ├── output/                 # Archivos de salida
 │   ├── arbitrage_bot.log  # Log del bot
 │   ├── price_manager.log  # Log del gestor de precios
 │   └── trades.csv         # Registro de trades
-├── support/               # Archivos de soporte
-│   └── requirements.txt   # Dependencias de Python
-├── testing/               # Tests del bot
-│   └── test_arbitrage_bot.py
-└── Main.py               # Punto de entrada principal
+├── web/                    # Dashboard web
+│   ├── app.py             # Aplicación principal
+│   ├── layout.py          # Layout con navegación
+│   ├── views/             # Vistas de las páginas
+│   │   ├── dashboard_view.py    # Dashboard de precios
+│   │   └── arbitrage_view.py    # Página de arbitraje
+│   └── README.md          # Documentación del dashboard
+├── run_dashboard.py       # Script para ejecutar el dashboard
+├── requirements.txt        # Dependencias de Python
+└── Main.py               # Punto de entrada principal del bot
 ```
 
 ## Configuración

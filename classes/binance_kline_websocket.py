@@ -36,7 +36,10 @@ class BinanceKlineWebSocket:
         self.stream_string = self._build_stream_string()
         
         # URL del WebSocket
-        self.socket_url = f"wss://stream.binance.com:9443/stream?streams={self.stream_string}"
+        #self.socket_url = f"wss://stream.binance.com:9443/stream?streams={self.stream_string}"
+
+        # URL del WebSocket de US
+        self.socket_url = f"wss://fstream.binance.com/stream?streams={self.stream_string}"
         
         logger.info(f"WebSocket inicializado para assets: {self.assets}")
         logger.info(f"URL del stream: {self.socket_url}")
@@ -173,7 +176,6 @@ class BinanceKlineWebSocket:
             
         except Exception as e:
             logger.error(f"Error ejecutando WebSocket: {e}")
-            print(f"Error ejecutando WebSocket: {e}!!!!!!!!!!!!!!!!!!!!!!!!!")
     
     def start(self):
         """
