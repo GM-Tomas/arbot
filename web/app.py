@@ -8,7 +8,7 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from layout import create_main_layout
 from views.dashboard_view import create_dashboard_layout, get_dashboard_callbacks
-from views.arbitrage_view import create_arbitrage_layout
+from views.arbitrage_view import create_arbitrage_layout, get_arbitrage_callbacks
 
 # Initialize the Dash app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -19,6 +19,9 @@ app.layout = create_main_layout()
 
 # Register dashboard callbacks
 get_dashboard_callbacks(app)
+
+# Register arbitrage callbacks
+get_arbitrage_callbacks(app)
 
 # Callback to handle page routing
 @app.callback(
