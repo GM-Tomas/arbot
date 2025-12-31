@@ -12,7 +12,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'web'))
 if __name__ == '__main__':
     print("🚀 Iniciando Arbitbot Dashboard...")
     print("📊 Dashboard disponible en: http://localhost:8050")
-    print("🔍 Pestaña de Arbitraje: http://localhost:8050/arbitrage")
     print("=" * 50)
     
     try:
