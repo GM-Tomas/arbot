@@ -33,7 +33,7 @@ class PriceMonitor:
             return
             
         self._prices: Dict[str, Dict] = {}
-        self._pairs: List[str] = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'ADAUSDT']
+        self._pairs: List[str] = self._load_pairs_from_json()
         self._websocket: Optional[BinanceKlineWebSocket] = None
         self._data_lock = threading.Lock()
         
@@ -45,6 +45,26 @@ class PriceMonitor:
     def get_instance(cls):
         """Método estático para obtener la instancia única."""
         return cls()
+
+    def _load_pairs_from_json(self) -> List[str]:
+        """Carga la lista de pares desde el archivo JSON de configuración."""
+        import json
+        import os
+        
+        config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'config', 'pairs.json')
+        
+        try:
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    pairs = json.load(f)
+                    logger.info(f"Pares cargados desde JSON: {pairs}")
+                    return pairs
+            else:
+                logger.warning(f"Archivo de configuración no encontrado en {config_path}. Usando pares por defecto.")
+                return ['BTCUSDT', 'ETHUSDT'] # Fallback
+        except Exception as e:
+            logger.error(f"Error cargando pares desde JSON: {e}")
+            return ['BTCUSDT', 'ETHUSDT'] # Fallback
 
     def _start_websocket(self):
         """Inicia (o reinicia) la conexión WebSocket."""

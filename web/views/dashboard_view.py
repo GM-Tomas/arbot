@@ -1,5 +1,5 @@
 import dash
-from dash import dcc, html, Input, Output, State, callback_context
+from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 import sys
 import os
@@ -36,37 +36,14 @@ def create_dashboard_layout():
     """
     Crea el layout del dashboard.
     """
-    monitor = PriceMonitor.get_instance()
-    current_pairs = ", ".join(monitor.get_monitored_pairs())
-
     return dbc.Container([
         # Header
         dbc.Row([
             dbc.Col([
-                html.H2("Monitor de Precios Crypto", 
+                html.H2("Crypto Monitor", 
                        className="text-center mb-4 text-primary"),
                 html.Hr()
             ])
-        ]),
-        
-        # Panel de Configuración (Input Dinámico)
-        dbc.Row([
-            dbc.Col([
-                dbc.Card([
-                    dbc.CardHeader("Configuración de Pares"),
-                    dbc.CardBody([
-                        dbc.Label("Ingresa los pares a monitorear (separados por coma):"),
-                        dbc.Textarea(
-                            id="pairs-input",
-                            placeholder="Ej: BTCUSDT, ETHUSDT, SOLUSDT",
-                            value=current_pairs,
-                            style={"height": "100px"},
-                            className="mb-3"
-                        ),
-                        dbc.Button("Actualizar Pares", id="update-pairs-btn", color="primary", outline=True)
-                    ])
-                ], className="mb-4")
-            ], width=12, md=8, lg=6, className="mx-auto")
         ]),
         
         # Contenedor de Tarjetas de Precios
@@ -86,33 +63,20 @@ def get_dashboard_callbacks(app):
     """
     
     @app.callback(
-        [Output("cards-container", "children"),
-         Output("pairs-input", "value")],
-        [Input("interval-component", "n_intervals"),
-         Input("update-pairs-btn", "n_clicks")],
-        [State("pairs-input", "value")]
+        Output("cards-container", "children"),
+        [Input("interval-component", "n_intervals")]
     )
-    def update_dashboard(n_intervals, n_clicks, pairs_input_value):
+    def update_dashboard(n_intervals):
         """
-        Callback único que maneja tanto la actualización de tiempo como el botón.
+        Callback único que actualiza la vista basado en el modelo.
         """
         monitor = PriceMonitor.get_instance()
-        ctx = callback_context
-        triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
         
-        # LÓGICA DEL CONTROLADOR
-        
-        # 1. Si se clickeó el botón, actualizar el modelo
-        if triggered_id == "update-pairs-btn":
-            if pairs_input_value:
-                pairs_list = pairs_input_value.split(',')
-                monitor.update_pairs(pairs_list)
-        
-        # 2. Obtener datos del modelo (siempre, para refrescar la vista)
+        # Obtener datos del modelo
         prices = monitor.get_prices()
         monitored_pairs = monitor.get_monitored_pairs()
         
-        # 3. Generar la VISTA (Tarjetas)
+        # Generar la VISTA (Tarjetas)
         cards = []
         for pair in monitored_pairs:
             # Si tenemos datos, usarlos, si no, placeholder
@@ -120,7 +84,6 @@ def get_dashboard_callbacks(app):
             cards.append(create_price_card(pair, data))
             
         if not cards:
-            cards = [dbc.Alert("No hay pares configurados o datos recibidos.", color="warning")]
+            cards = [dbc.Alert("No hay pares configurados en config/pairs.json", color="warning")]
             
-        # Devolver visualización y el valor actual del input (para mantener sincronía)
-        return cards, ", ".join(monitored_pairs)
+        return cards
